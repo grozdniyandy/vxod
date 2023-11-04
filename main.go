@@ -6,6 +6,7 @@ import (
     "net/http"
     "os"
     "github.com/PuerkitoBio/goquery"
+    "crypto/tls"
 )
 
 func main() {
@@ -24,16 +25,17 @@ func main() {
 }
 
 func checkForInputFields(url string) {
-    resp, err := http.Get(url)
+    httpClient := &http.Client{
+        Transport: &http.Transport{
+            TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+        },
+    }
+
+    resp, err := httpClient.Get(url)
     if err != nil {
         log.Fatal(err)
     }
     defer resp.Body.Close()
-
-    if resp.StatusCode != 200 {
-        log.Fatalf("Failed to fetch %s: %s", url, resp.Status)
-        return
-    }
 
     doc, err := goquery.NewDocumentFromReader(resp.Body)
     if err != nil {
